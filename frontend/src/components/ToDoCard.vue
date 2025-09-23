@@ -62,7 +62,7 @@
           {{ editMode ? 'Editar Tarea' : 'Nueva Tarea' }}
         </h2>
 
-        <form @submit="editMode ? handleUpdateTask(selectedTaskID, selectedTask) : handleCreateTask()" class="space-y-4">
+        <form @submit.prevent="editMode ? handleUpdateTask(selectedTaskID, selectedTask) : handleCreateTask()" class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700">Título</label>
             <input
@@ -73,6 +73,8 @@
             />
           </div>
 
+          <p v-if="errors.title" class="text-red-500 text-xs mt-1"><strong>*{{ errors.title }}*</strong></p>
+
           <div>
             <label class="block text-sm font-medium text-gray-700">Descripción</label>
             <textarea
@@ -80,6 +82,8 @@
               class="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-400"
             ></textarea>
           </div>
+
+          <p v-if="errors.description" class="text-red-500 text-xs mt-1"><strong>*{{ errors.description }}*</strong></p>
 
           <div>
             <label class="block text-sm font-medium text-gray-700">Tipo</label>
@@ -93,6 +97,8 @@
               <option value="estudio">Estudio</option>
             </select>
           </div>
+
+          <p v-if="errors.type" class="text-red-500 text-xs mt-1"><strong>*{{ errors.type }}*</strong></p>
 
           <div class="flex justify-end gap-2">
             <button
@@ -156,6 +162,7 @@ const showModal = ref(false)
 const showDeleteModal = ref(false)
 const editMode = ref(false)
 const form = ref({ id: null, title: "", description: "", task_type: "" })
+const errors = ref({title: '', description: '', type: ''})
 
 onMounted( async () => {
   try {
@@ -190,12 +197,25 @@ function closeDeleteModal(){
   showDeleteModal.value = false
 }
 
+function validateForm(){
+  errors.value = {title: '', description: '', type: ''}
+  if (form.value.title.length > 30) errors.value.title = 'Máximo 30 caracteres.'
+  if (form.value.description.length > 50) errors.value.description = 'Máximo 50 caracteres'
+  const stop = Object.keys(errors.value).length === 0 ? true : false
+  return stop
+}
+
 async function handleCreateTask() {
+  debugger
+  if (!validateForm()) {
+    return
+  }
   selectedTask.value = form.value
   await createTask(selectedTask.value)
 }
 
 async function handleUpdateTask(taskId, task) {
+  if (!validateForm()) return
   await updateTask(taskId, task)
   closeModal()
 }

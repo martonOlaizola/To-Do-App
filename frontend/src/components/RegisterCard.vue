@@ -61,13 +61,14 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { getCurrentUser, loginUser, registerUser } from '../services/loginService'
 const router = useRouter()
 
 const email = ref('')
 const password = ref('')
 const rePassword = ref('')
-const showPassword = ref(false)
-const showRePassword = ref(false)
+const showPassword = ref(true)
+const showRePassword = ref(true)
 const emailError = ref('')
 const passwordError = ref('')
 const rePasswordError = ref('')
@@ -78,7 +79,7 @@ function togglePassword() {
 function toggleRePassword() {
   showRePassword.value = !showRePassword.value
 }
-function handleSubmit() {
+async function handleSubmit() {
   if (!email.value){
   emailError.value = 'El Email es obligatorio.'
   } else {
@@ -95,17 +96,14 @@ function handleSubmit() {
     return
   } else {
     rePasswordError.value = ''
+  }  
+  const payload = {
+    email: email.value,
+    password: password.value,
   }
-  
-  if (email.value && password.value && rePassword.value){
-    const payload = {
-      email: email.value,
-      password: password.value,
-      rePassword: rePassword.value
-    }
-    delete payload.rePassword
-    localStorage.setItem("payload", JSON.stringify(payload))
-    router.push('/home')
-  }
+  await registerUser(payload)
+  await loginUser(payload)
+  await getCurrentUser()
+  router.push('/home')
 }
 </script>

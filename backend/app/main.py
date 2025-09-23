@@ -3,7 +3,7 @@ from fastapi import FastAPI, status, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.router import task_routes, user_routes
+from app.endpoints import task_ep, user_ep
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,8 @@ app.add_middleware(
   allow_headers=["*"]
 )
 
-app.include_router(task_routes.router)
-app.include_router(user_routes.router)
+app.include_router(task_ep.router)
+app.include_router(user_ep.router)
 
 @app.get("/")
 def read_root():

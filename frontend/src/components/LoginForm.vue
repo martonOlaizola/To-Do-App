@@ -30,7 +30,7 @@
 
         <button
           type="submit"
-          class="w-full py-2 px-4 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-md transition-colors duration-200"
+          class="w-full py-2 px-4 bg-indigo-500 hover:bg-indigo-600 hover:cursor-pointer text-white font-semibold rounded-md transition-colors duration-200"
         >
           Ingresar
         </button>
@@ -46,7 +46,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { getCurrentUser, loginUser } from '../services/loginService'
+import { useToast } from 'vue-toastification'
 const router = useRouter()
+const toast = useToast()
 
 const email = ref('')
 const password = ref('')
@@ -58,7 +61,7 @@ function togglePassword() {
   showPassword.value = !showPassword.value
 }
 
-function handleSubmit() {
+async function handleSubmit() {
   if (!email.value){
     emailError.value = 'El Email es obligatorio.'
   } else {
@@ -69,13 +72,20 @@ function handleSubmit() {
   } else {
     passwordError.value = ''
   }
-  if (email.value && password.value){
-    const userData = {
-      email: email.value,
-      password: password.value
-    }
-    localStorage.setItem("userData", JSON.stringify(userData))
+  const userData = {
+    email: email.value,
+    password: password.value
+  }
+  try{
+    await loginUser(userData)
+    const token = localStorage.getItem('jwt')
+    const userMetaData = await getCurrentUser(token)
+    localStorage.setItem('user', JSON.stringify(userMetaData))
+    toast.success('¡Bienvenido al Sitio!')
     router.push('/home')
+  } catch(error) {
+    toast.error('Error iniciando sesión.')
+    throw new Error('Error iniciando sesión: ' + error.message)
   }
 }
 

@@ -36,13 +36,13 @@
 
           <div class="flex gap-2">
             <button
-              @click="editTask(task)"
+              @click="openEditTask(task.id)"
               class="px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded-md text-sm"
             >
               Editar
             </button>
             <button
-              @click="deleteTask(task.id)"
+              @click="openDeleteModal(task.id)"
               class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm"
             >
               Eliminar
@@ -62,7 +62,7 @@
           {{ editMode ? 'Editar Tarea' : 'Nueva Tarea' }}
         </h2>
 
-        <form @submit.prevent="saveTask" class="space-y-4">
+        <form @submit="editMode ? handleUpdateTask(selectedTaskID, selectedTask) : handleCreateTask()" class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700">Título</label>
             <input
@@ -78,16 +78,14 @@
             <textarea
               v-model="form.description"
               class="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-400"
-              required
             ></textarea>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700">Tipo</label>
             <select
-              v-model="form.type"
+              v-model="form.task_type"
               class="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-400"
-              required
             >
               <option disabled value="">Selecciona un tipo</option>
               <option value="trabajo">Trabajo</option>
@@ -114,20 +112,61 @@
         </form>
       </div>
     </div>
+      <!-- Modal eliminar -->
+        <div
+        v-if="showDeleteModal"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-[400px]">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            ¿Estás seguro de eliminar esta tarea?
+          </h2>
+          <p class="text-gray-600 text-sm mb-6">
+            Esta acción no se puede deshacer.
+          </p>
+          <div class="flex justify-end gap-3">
+            <button
+            @click="closeDeleteModal"
+              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+            type="submit"
+              @click="handleDeleteTask(selectedTaskID)"
+              class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm transition-colors"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue"
+import { onMounted, ref } from "vue"
+import { getAllTasksFromUser, createTask, updateTask, deleteTask } from "../services/taskService"
+import { useToast } from "vue-toastification"
 
-const tasks = ref([
-  { id: 1, title: "Estudiar Vue 3", description: "Repasar Composition API", type: "estudio" },
-  { id: 2, title: "Proyecto To-Do App", description: "Frontend con Vue", type: "trabajo" },
-])
-
+const tasks = ref([])
+const selectedTaskID = ref(null)
+const selectedTask = ref({})
+const toast = useToast()
 const showModal = ref(false)
+const showDeleteModal = ref(false)
 const editMode = ref(false)
-const form = ref({ id: null, title: "", description: "", type: "" })
+const form = ref({ id: null, title: "", description: "", task_type: "" })
+
+onMounted( async () => {
+  try {
+    const userSTR = localStorage.getItem('user')
+    const user = JSON.parse(userSTR)
+    tasks.value = await getAllTasksFromUser(user.id)
+  } catch(error) {
+    toast.error('Error al traer las tareas')
+    console.error(`Error: ${error}`)
+  }
+})
 
 function openCreateModal() {
   editMode.value = false
@@ -135,27 +174,35 @@ function openCreateModal() {
   showModal.value = true
 }
 
-function editTask(task) {
+function openEditTask(taskId) {
+  selectedTaskID.value = taskId
   editMode.value = true
-  form.value = { ...task }
   showModal.value = true
+  selectedTask.value = form.value
 }
 
-function saveTask() {
-  if (editMode.value) {
-    const index = tasks.value.findIndex((t) => t.id === form.value.id)
-    if (index !== -1) tasks.value[index] = { ...form.value }
-  } else {
-    tasks.value.push({
-      ...form.value,
-      id: Date.now(),
-    })
-  }
+function openDeleteModal(taskID) {
+  selectedTaskID.value = taskID
+  showDeleteModal.value = true
+}
+
+function closeDeleteModal(){
+  showDeleteModal.value = false
+}
+
+async function handleCreateTask() {
+  selectedTask.value = form.value
+  await createTask(selectedTask.value)
+}
+
+async function handleUpdateTask(taskId, task) {
+  await updateTask(taskId, task)
   closeModal()
 }
 
-function deleteTask(id) {
-  tasks.value = tasks.value.filter((task) => task.id !== id)
+async function handleDeleteTask(taskId) {
+  await deleteTask(taskId)
+  window.location.reload()
 }
 
 function closeModal() {

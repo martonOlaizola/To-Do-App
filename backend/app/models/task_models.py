@@ -34,6 +34,10 @@ class Task(Base):
     String(50),
     nullable=True
   )
+  task_type=Column(
+    String(50),
+    nullable=False
+  )
   completed=Column(
     Boolean,
     nullable=False

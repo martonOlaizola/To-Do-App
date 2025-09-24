@@ -24,7 +24,7 @@ export async function loginUser(userData){
     })
 
     const token = response.data.access_token
-    localStorage.setItem('jwt', token)
+    return token
   }catch (error) {
     console.error('Error en el login: ', error.response?.data || error.message)
   }

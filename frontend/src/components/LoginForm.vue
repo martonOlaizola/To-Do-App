@@ -77,9 +77,9 @@ async function handleSubmit() {
     password: password.value
   }
   try{
-    await loginUser(userData)
-    const token = localStorage.getItem('jwt')
+    const token = await loginUser(userData)
     const userMetaData = await getCurrentUser(token)
+    localStorage.setItem('jwt', token)
     localStorage.setItem('user', JSON.stringify(userMetaData))
     toast.success('¡Bienvenido al Sitio!')
     router.push('/home')

@@ -16,10 +16,14 @@
     "@fortawesome/vue-fontawesome": "^3.1.2",
     "@tailwindcss/vite": "^4.1.13",
     "axios": "^1.12.2",
+    "lucide": "^0.544.0",
+    "lucide-vue-next": "^0.544.0",
     "tailwindcss": "^4.1.13",
+    "vee-validate": "^4.15.1",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1",
-    "vue-toastification": "^2.0.0-rc.5"
+    "vue-toastification": "^2.0.0-rc.5",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",

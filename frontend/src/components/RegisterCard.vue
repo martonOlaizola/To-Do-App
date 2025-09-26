@@ -1,46 +1,111 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
     <div class="max-w-md w-full bg-gray-200 rounded-xl shadow-lg p-8 space-y-6">
-      <h1 class="text-2xl font-semibold text-center text-gray-800">Iniciar sesión</h1>
+      <h1 class="text-2xl font-semibold text-center text-gray-800">Registrate</h1>
 
-      <form class="space-y-4" @submit.prevent="handleSubmit">
+      <form class="space-y-4" @submit.prevent="onSubmit">
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
-          <input
-            type="email"
-            id="email"
-            v-model="email"
-            placeholder="tucorreo@ejemplo.com"
-            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+          <InputField
+          id="email"
+          label="Email *"
+          placeholder="usuario@email.com"
+          :colorTextLabel="'text-gray'"
+          v-model="email"
+          :error="emailError"
           />
-          <p v-if="emailError" class="text-red-500 text-xs mt-1"><strong>*{{ emailError }}*</strong></p>
-
         </div>
-
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-          <input
-            type="password"
-            id="password"
-            v-model="password"
-            :type="showPassword ? 'text' : 'password'"
-            placeholder="********"
-            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
-          />
-          <p v-if="passwordError" class="text-red-500 text-xs mt-1"><strong>*{{ passwordError }}*</strong></p>
+        <InputField
+          id="password"
+          label="Contraseña *"
+          :type="showPassword ? 'text' : 'password'"
+          :colorTextLabel="'text-gray'"
+          placeholder="********"
+          v-model="password"
+          :error="passwordError"
+          > 
+            <template #icon>
+              <button
+              type="button"
+              class="absolute inset-y-0 right-2 flex items-center text-gray-500 :hover cursor-pointer" 
+              @click="togglePassword"
+              >
+              <svg
+              v-if="!showPassword"
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.046 10.046 0 013.58-4.747M9.88 9.88a3 3 0 104.24 4.24" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3l18 18" />
+            </svg>
+              </button>
+            </template>
+          </InputField>
         </div>
         
         <div>
-          <label for="re-password" class="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
-          <input
-            type="password"
-            id="re-password"
-            v-model="rePassword"
-            :type="showRePassword ? 'text' : 'password'"
-            placeholder="********"
-            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
-          />
-          <p v-if="rePasswordError" class="text-red-500 text-xs mt-1"><strong>*{{ rePasswordError }}*</strong></p>
+          <InputField
+          id="rePassword"
+          label="Repetir Contraseña *"
+          :type="showRePassword ? 'text' : 'password'"
+          :colorTextLabel="'text-gray'"
+          placeholder="********"
+          v-model="rePassword"
+          :error="rePasswordError"
+          > 
+            <template #icon>
+              <button
+              type="button"
+              class="absolute inset-y-0 right-2 flex items-center text-gray-500 :hover cursor-pointer" 
+              @click="toggleRePassword"
+              >
+              <svg
+              v-if="!showRePassword"
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.046 10.046 0 013.58-4.747M9.88 9.88a3 3 0 104.24 4.24" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3l18 18" />
+            </svg>
+              </button>
+            </template>
+          </InputField>
         </div>
 
         <button
@@ -61,17 +126,40 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import * as yup from 'yup'
+import { useForm, useField } from 'vee-validate'
 import { getCurrentUser, loginUser, registerUser } from '../services/loginService'
+import InputField from './InputField.vue'
+
 const router = useRouter()
 
-const email = ref('')
-const password = ref('')
-const rePassword = ref('')
-const showPassword = ref(true)
-const showRePassword = ref(true)
-const emailError = ref('')
-const passwordError = ref('')
-const rePasswordError = ref('')
+const showPassword = ref(false)
+const showRePassword = ref(false)
+const schema = yup.object({
+  email: yup.string()
+    .required("Por favor, ingrese su email.").
+    email("Respete el formato de email"),
+  password: yup.string().
+    required("Por favor, ingrese su contraseña").
+    min(8, "Mínimo 8 caracteres"),
+  rePassword: yup.string()
+    .required("Por favor, repita su contraseña")
+    .oneOf([yup.ref("password"), null], "Las contraseñas no coinciden")
+})
+
+const { handleSubmit } = useForm({
+  validationSchema: schema,
+  initialValues: {
+    email: '',
+    password: '',
+    rePassword: ''
+  }
+})
+const { value: email, errorMessage: emailError } = useField('email')
+const { value: password, errorMessage: passwordError } = useField('password')
+const { value: rePassword, errorMessage: rePasswordError } = useField('rePassword')
+
+
 
 function togglePassword() {
   showPassword.value = !showPassword.value
@@ -79,31 +167,20 @@ function togglePassword() {
 function toggleRePassword() {
   showRePassword.value = !showRePassword.value
 }
-async function handleSubmit() {
-  if (!email.value){
-  emailError.value = 'El Email es obligatorio.'
-  } else {
-    emailError.value = ''
+const onSubmit = handleSubmit(async (values) => {
+  try {
+    const payload = {
+      email: values.email,
+      password: values.password
+    }
+    await registerUser(payload)
+    const token = await loginUser(payload)
+    const userMetaData = await getCurrentUser(token)
+    localStorage.setItem('jwt', token)
+    localStorage.setItem('user', JSON.stringify(userMetaData))
+    router.push('/home')
+  } catch(error) {
+    console.error(`Error: ${error}`)
   }
-  if (!password.value){
-    passwordError.value = 'La contraseña es obligatoria.'
-    return
-  }
-  if (!rePassword.value){
-    rePasswordError.value = 'Por favor, repita la contraseña.'
-  } else if (password.value !== rePassword.value){
-    rePasswordError.value = 'Las contraseñas no coinciden.'
-    return
-  } else {
-    rePasswordError.value = ''
-  }  
-  const payload = {
-    email: email.value,
-    password: password.value,
-  }
-  await registerUser(payload)
-  await loginUser(payload)
-  await getCurrentUser()
-  router.push('/home')
-}
+}) 
 </script>

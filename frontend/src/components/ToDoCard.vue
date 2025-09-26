@@ -36,7 +36,7 @@
 
           <div class="flex gap-2">
             <button
-              @click="openEditTask(task.id)"
+              @click="openEditModal(task)"
               class="px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded-md text-sm"
             >
               Editar
@@ -66,19 +66,20 @@
           <div>
             <label class="block text-sm font-medium text-gray-700">Título</label>
             <input
-              v-model="form.title"
+              v-model="title"
               type="text"
               class="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-400"
-              required
+              :required="editMode ? false : true"
             />
           </div>
+
 
           <p v-if="errors.title" class="text-red-500 text-xs mt-1"><strong>*{{ errors.title }}*</strong></p>
 
           <div>
             <label class="block text-sm font-medium text-gray-700">Descripción</label>
             <textarea
-              v-model="form.description"
+              v-model="description"
               class="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-400"
             ></textarea>
           </div>
@@ -88,7 +89,7 @@
           <div>
             <label class="block text-sm font-medium text-gray-700">Tipo</label>
             <select
-              v-model="form.task_type"
+              v-model="task_type"
               class="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-400"
             >
               <option disabled value="">Selecciona un tipo</option>
@@ -151,8 +152,11 @@
 
 <script setup>
 import { onMounted, ref } from "vue"
-import { getAllTasksFromUser, createTask, updateTask, deleteTask } from "../services/taskService"
 import { useToast } from "vue-toastification"
+import * as yup from "yup"
+import { useForm, useField } from "vee-validate"
+import { getAllTasksFromUser, createTask, updateTask, deleteTask } from "../services/taskService"
+
 
 const tasks = ref([])
 const selectedTaskID = ref(null)
@@ -161,14 +165,23 @@ const toast = useToast()
 const showModal = ref(false)
 const showDeleteModal = ref(false)
 const editMode = ref(false)
-const form = ref({ id: null, title: "", description: "", task_type: "" })
-const errors = ref({title: '', description: '', type: ''})
-
+const schema = yup.object({
+  title: yup.string().max(30, "Máximo 30 caracteres."),
+  description: yup.string().max(50, "Máxmimo 50 caracteres."),
+})
+const { handleSubmit, errors, resetForm } = useForm({
+  validationSchema: schema,
+  validateOnInput: true
+})
+const { value: title } = useField('title')
+const { value: description } = useField('description')
+const { value: task_type } = useField('task_type')
 onMounted( async () => {
   try {
+    const token = localStorage.getItem('jwt')
     const userSTR = localStorage.getItem('user')
     const user = JSON.parse(userSTR)
-    tasks.value = await getAllTasksFromUser(user.id)
+    tasks.value = await getAllTasksFromUser(user.id, token)
   } catch(error) {
     toast.error('Error al traer las tareas')
     console.error(`Error: ${error}`)
@@ -177,15 +190,20 @@ onMounted( async () => {
 
 function openCreateModal() {
   editMode.value = false
-  form.value = { id: null, title: "", description: "", type: "" }
+  resetForm()
   showModal.value = true
 }
 
-function openEditTask(taskId) {
-  selectedTaskID.value = taskId
+function openEditModal(task) {
+  selectedTaskID.value = task.id
+  selectedTask.value = task
   editMode.value = true
+  resetForm({ values: task })
   showModal.value = true
-  selectedTask.value = form.value
+}
+
+function closeModal(){
+  showModal.value = false
 }
 
 function openDeleteModal(taskID) {
@@ -197,35 +215,40 @@ function closeDeleteModal(){
   showDeleteModal.value = false
 }
 
-function validateForm(){
-  errors.value = {title: '', description: '', type: ''}
-  if (form.value.title.length > 30) errors.value.title = 'Máximo 30 caracteres.'
-  if (form.value.description.length > 50) errors.value.description = 'Máximo 50 caracteres'
-  const stop = Object.keys(errors.value).length === 0 ? true : false
-  return stop
-}
 
-async function handleCreateTask() {
-  debugger
-  if (!validateForm()) {
-    return
+const handleCreateTask = handleSubmit(async (values) => {
+  try {
+    await createTask(values, token)
+    toast.success('Tarea creada con exito')
+    tasks.value = await getAllTasksFromUser(user.id, token)
+    closeModal()
+  } catch(error) {
+    console.error(`Error: ${error}`)
+    toast.error('Error al crear tarea')
   }
-  selectedTask.value = form.value
-  await createTask(selectedTask.value)
-}
+})
 
-async function handleUpdateTask(taskId, task) {
-  if (!validateForm()) return
-  await updateTask(taskId, task)
-  closeModal()
-}
+const handleUpdateTask = handleSubmit(async (values) => {
+  try {
+    await updateTask(selectedTaskID.value, values, token)
+    toast.success('Tarea editada con exito')
+    tasks.value = await getAllTasksFromUser(user.id, token)
+    closeModal()
+  } catch(error) {
+    console.error(`Error: ${error}`)
+    toast.error('Error al editar tarea')
+  }
+})
 
 async function handleDeleteTask(taskId) {
-  await deleteTask(taskId)
-  window.location.reload()
-}
-
-function closeModal() {
-  showModal.value = false
+  try {
+    await deleteTask(taskId)
+    toast.success('Tarea eliminada')
+    tasks.value = await getAllTasksFromUser(user.id, token)
+    closeDeleteModal()
+  } catch(error){
+    console.error(`Error: ${error}`)
+    toast.error('Error eliminando la tarea')
+  }
 }
 </script>

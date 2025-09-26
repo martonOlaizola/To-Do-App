@@ -6,9 +6,8 @@ const CREATE_TASK = `${BASE_URL}/tasks/create/`
 const UPDATE_TASK = `${BASE_URL}/tasks/update/`
 const DELETE_TASK = `${BASE_URL}/tasks/delete/`
 
-const token = localStorage.getItem('jwt')
 
-export async function getAllTasksFromUser(userID){
+export async function getAllTasksFromUser(userID, token){
   try {
     const response = await axios.get(`${GET_ALL_FROM_USER}${userID}`, {
       headers: {
@@ -21,7 +20,7 @@ export async function getAllTasksFromUser(userID){
   }
 }
 
-export async function createTask(taskData) {
+export async function createTask(taskData, token) {
   try {
     const response = await axios.post(CREATE_TASK, taskData,{
       headers: {
@@ -33,7 +32,7 @@ export async function createTask(taskData) {
   }
 }
 
-export async function updateTask(taskID, task){
+export async function updateTask(taskID, task, token){
   try {
     const response = await axios.put(`${UPDATE_TASK}${taskID}`, task, {
       headers: {
@@ -46,7 +45,7 @@ export async function updateTask(taskID, task){
   }
 }
 
-export async function deleteTask(taskID){
+export async function deleteTask(taskID, token){
   try {
     const response = await axios.delete(`${DELETE_TASK}${taskID}`, {
       headers: {

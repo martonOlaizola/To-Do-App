@@ -2,8 +2,16 @@
   <div class="min-h-screen bg-gray-100 flex flex-col">
     <!-- Main content -->
     <main class="flex-1 p-6 max-w-3xl mx-auto w-full">
-      <!-- Botón crear -->
-      <div class="flex justify-end mb-4">
+      <!-- Acciones -->
+      <div class="flex justify-end mb-4 gap-2">
+        <button
+          type="button"
+          @click="completeSelectedTasks"
+          :disabled="!selectedTaskIds.length"
+          class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Completar
+        </button>
         <button
           @click="openCreateModal"
           class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md transition"
@@ -17,21 +25,30 @@
         <div
           v-for="task in tasks"
           :key="task.id"
-          class="bg-white p-4 rounded-lg shadow flex justify-between items-center"
-        >
-          <div>
-            <h2 class="text-lg font-semibold text-gray-800">{{ task.title }}</h2>
-            <p class="text-gray-600 text-sm">{{ task.description }}</p>
-            <span
-              class="inline-block mt-1 px-2 py-1 text-xs rounded-full"
-              :class="{
-                'bg-blue-100 text-blue-600': task.type === 'trabajo',
-                'bg-green-100 text-green-600': task.type === 'personal',
-                'bg-yellow-100 text-yellow-600': task.type === 'estudio'
-              }"
-            >
-              {{ task.type }}
-            </span>
+          :class="['p-4 rounded-lg shadow flex items-start justify-between gap-4 border transition-colors duration-200', task.completed ? 'bg-slate-50 border-green-200' : 'bg-white border-transparent']"
+          >
+          <div class="flex items-start gap-3">
+            <Checkbox
+              v-model="selectedTaskIds"
+              :value="task.id"
+            />
+            <div>
+              <h2 :class="['text-lg font-semibold', task.completed ? 'text-gray-500 line-through' : 'text-gray-800']">{{ task.title }}</h2>
+              <p :class="['text-sm', task.completed ? 'text-gray-400' : 'text-gray-600']">{{ task.description }}</p>
+              <span
+                :class="[
+                  'inline-block mt-1 px-2 py-1 text-xs rounded-full transition-colors duration-200',
+                  task.completed ? 'opacity-70 ring-1 ring-green-200' : '',
+                  {
+                    'bg-blue-100 text-blue-600': task.type === 'trabajo',
+                    'bg-green-100 text-green-600': task.type === 'personal',
+                    'bg-yellow-100 text-yellow-600': task.type === 'estudio'
+                  }
+                ]"
+              >
+                {{ task.type }}
+              </span>
+            </div>
           </div>
 
           <div class="flex gap-2">
@@ -155,10 +172,11 @@ import { onMounted, ref } from "vue"
 import { useToast } from "vue-toastification"
 import * as yup from "yup"
 import { useForm, useField } from "vee-validate"
+import Checkbox from "./Checkbox.vue"
 import { getAllTasksFromUser, createTask, updateTask, deleteTask } from "../services/taskService"
 
-
 const tasks = ref([])
+const selectedTaskIds = ref([])
 const selectedTaskID = ref(null)
 const selectedTask = ref({})
 const toast = useToast()
@@ -215,9 +233,45 @@ function closeDeleteModal(){
   showDeleteModal.value = false
 }
 
+async function completeSelectedTasks(){
+  if (!selectedTaskIds.value.length) {
+    return
+  }
+
+  const pendingIds = selectedTaskIds.value.filter(id => {
+    const task = tasks.value.find(taskItem => taskItem.id === id)
+    return task && !task.completed
+  })
+
+  if (!pendingIds.length) {
+    selectedTaskIds.value = []
+    toast.info('Las tareas seleccionadas ya estaban completadas')
+    return
+  }
+
+  try {
+    const token = localStorage.getItem('jwt')
+    const userSTR = localStorage.getItem('user')
+    const user = JSON.parse(userSTR)
+
+    await Promise.all(pendingIds.map(async id => {
+      await updateTask(id, { completed: true }, token)
+    }))
+
+    toast.success('Tareas marcadas como completadas')
+    tasks.value = await getAllTasksFromUser(user.id, token)
+    selectedTaskIds.value = []
+  } catch(error) {
+    console.error(`Error: ${error}`)
+    toast.error('Error al completar tareas')
+  }
+}
 
 const handleCreateTask = handleSubmit(async (values) => {
   try {
+    const token = localStorage.getItem('jwt')
+    const userSTR = localStorage.getItem('user')
+    const user = JSON.parse(userSTR)
     await createTask(values, token)
     toast.success('Tarea creada con exito')
     tasks.value = await getAllTasksFromUser(user.id, token)
@@ -230,6 +284,9 @@ const handleCreateTask = handleSubmit(async (values) => {
 
 const handleUpdateTask = handleSubmit(async (values) => {
   try {
+    const token = localStorage.getItem('jwt')
+    const userSTR = localStorage.getItem('user')
+    const user = JSON.parse(userSTR)
     await updateTask(selectedTaskID.value, values, token)
     toast.success('Tarea editada con exito')
     tasks.value = await getAllTasksFromUser(user.id, token)
@@ -242,7 +299,10 @@ const handleUpdateTask = handleSubmit(async (values) => {
 
 async function handleDeleteTask(taskId) {
   try {
-    await deleteTask(taskId)
+    const token = localStorage.getItem('jwt')
+    const userSTR = localStorage.getItem('user')
+    const user = JSON.parse(userSTR)
+    await deleteTask(taskId, token)
     toast.success('Tarea eliminada')
     tasks.value = await getAllTasksFromUser(user.id, token)
     closeDeleteModal()

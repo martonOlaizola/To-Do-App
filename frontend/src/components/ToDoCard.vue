@@ -174,6 +174,9 @@ import * as yup from "yup"
 import { useForm, useField } from "vee-validate"
 import Checkbox from "./Checkbox.vue"
 import { getAllTasksFromUser, createTask, updateTask, deleteTask } from "../services/taskService"
+import { useAuthStore } from "../stores/authStore"
+
+const authStore = useAuthStore()
 
 const tasks = ref([])
 const selectedTaskIds = ref([])
@@ -196,9 +199,9 @@ const { value: description } = useField('description')
 const { value: task_type } = useField('task_type')
 onMounted( async () => {
   try {
-    const token = localStorage.getItem('jwt')
-    const userSTR = localStorage.getItem('user')
-    const user = JSON.parse(userSTR)
+    const token = authStore.token
+    const user = authStore.user
+
     tasks.value = await getAllTasksFromUser(user.id, token)
   } catch(error) {
     toast.error('Error al traer las tareas')
@@ -250,9 +253,8 @@ async function completeSelectedTasks(){
   }
 
   try {
-    const token = localStorage.getItem('jwt')
-    const userSTR = localStorage.getItem('user')
-    const user = JSON.parse(userSTR)
+    const token = authStore.token
+    const user = authStore.user
 
     await Promise.all(pendingIds.map(async id => {
       await updateTask(id, { completed: true }, token)
@@ -269,9 +271,9 @@ async function completeSelectedTasks(){
 
 const handleCreateTask = handleSubmit(async (values) => {
   try {
-    const token = localStorage.getItem('jwt')
-    const userSTR = localStorage.getItem('user')
-    const user = JSON.parse(userSTR)
+    const token = authStore.token
+    const user = authStore.user
+
     await createTask(values, token)
     toast.success('Tarea creada con exito')
     tasks.value = await getAllTasksFromUser(user.id, token)
@@ -284,9 +286,9 @@ const handleCreateTask = handleSubmit(async (values) => {
 
 const handleUpdateTask = handleSubmit(async (values) => {
   try {
-    const token = localStorage.getItem('jwt')
-    const userSTR = localStorage.getItem('user')
-    const user = JSON.parse(userSTR)
+    const token = authStore.token
+    const user = authStore.user
+    
     await updateTask(selectedTaskID.value, values, token)
     toast.success('Tarea editada con exito')
     tasks.value = await getAllTasksFromUser(user.id, token)
@@ -299,9 +301,9 @@ const handleUpdateTask = handleSubmit(async (values) => {
 
 async function handleDeleteTask(taskId) {
   try {
-    const token = localStorage.getItem('jwt')
-    const userSTR = localStorage.getItem('user')
-    const user = JSON.parse(userSTR)
+    const token = authStore.token
+    const user = authStore.user
+
     await deleteTask(taskId, token)
     toast.success('Tarea eliminada')
     tasks.value = await getAllTasksFromUser(user.id, token)

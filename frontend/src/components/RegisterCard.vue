@@ -130,8 +130,10 @@ import * as yup from 'yup'
 import { useForm, useField } from 'vee-validate'
 import { getCurrentUser, loginUser, registerUser } from '../services/loginService'
 import InputField from './InputField.vue'
+import { useAuthStore } from '../stores/authStore'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const showPassword = ref(false)
 const showRePassword = ref(false)
@@ -176,8 +178,8 @@ const onSubmit = handleSubmit(async (values) => {
     await registerUser(payload)
     const token = await loginUser(payload)
     const userMetaData = await getCurrentUser(token)
-    localStorage.setItem('jwt', token)
-    localStorage.setItem('user', JSON.stringify(userMetaData))
+    authStore.setToken(token)
+    authStore.setUser(userMetaData)
     router.push('/home')
   } catch(error) {
     console.error(`Error: ${error}`)

@@ -82,13 +82,15 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import * as yup from 'yup'
+import { useToast } from 'vue-toastification'
 import { useField, useForm } from 'vee-validate'
 import { getCurrentUser, loginUser } from '../services/loginService'
-import { useToast } from 'vue-toastification'
 import InputField from '../components/InputField.vue'
+import { useAuthStore } from '../stores/authStore'
 
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
 
 const showPassword = ref(false)
 const schema = yup.object({
@@ -122,8 +124,8 @@ const onSubmit = handleSubmit(async (values) => {
     }
     const token = await loginUser(userData)
     const userMetaData = await getCurrentUser(token)
-    localStorage.setItem('jwt', token)
-    localStorage.setItem('user', JSON.stringify(userMetaData))
+    authStore.setToken(token)
+    authStore.setUser(userMetaData)
     toast.success('¡Bienvenido al Sitio!')
     router.push('/home')
   } catch(error) {

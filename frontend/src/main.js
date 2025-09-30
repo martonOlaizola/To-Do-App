@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import Toast from 'vue-toastification'
 import "vue-toastification/dist/index.css"
+import '@fortawesome/fontawesome-free/css/all.css'
 import './style.css'
 import router from './routes'
 

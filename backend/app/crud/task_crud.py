@@ -80,3 +80,14 @@ def delete_task(task_id: int, user_id: int, db: Session = Depends(get_db)):
     )
   db.delete(task_db)
   db.commit()
+
+def delete_completed_tasks(user_id: int, db: Session = Depends(get_db)):
+  task_db = db.query(Task).filter(Task.completed == True and Task.user_id == user_id).all()
+  if task_db is None:
+    raise HTTPException(
+      status_code= 404,
+      detail="El usuario no tiene tareas completadas"
+    )
+  for task in task_db:
+    db.delete(task)
+    db.commit()

@@ -76,3 +76,13 @@ def delete_task(task_id: int, user: dict = Depends(auth.get_current_user), db: S
   user_id = int(user['user_id'])
   task_db = task_crud.delete_task(task_id, user_id, db)
   return task_db
+
+@router.delete(
+  '/delete_completed',
+  status_code=status.HTTP_200_OK
+)
+def delete_completed_tasks(user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+  import ipdb; ipdb.set_trace()
+  user_id = int(user['user_id'])
+  task_db = task_crud.delete_completed_tasks(user_id, db)
+  return task_db

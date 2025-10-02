@@ -13,6 +13,12 @@
           Completar
         </button>
         <button
+        @click="handleDeleteCompletedTasks"
+        class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+        Eliminar completadas
+        </button>
+        <button
           @click="openCreateModal"
           class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md transition"
         >
@@ -107,6 +113,7 @@
             <label class="block text-sm font-medium text-gray-700">Tipo</label>
             <select
               v-model="task_type"
+              required="true"
               class="mt-1 w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-400"
             >
               <option disabled value="">Selecciona un tipo</option>
@@ -173,7 +180,7 @@ import { useToast } from "vue-toastification"
 import * as yup from "yup"
 import { useForm, useField } from "vee-validate"
 import Checkbox from "./Checkbox.vue"
-import { getAllTasksFromUser, createTask, updateTask, deleteTask } from "../services/taskService"
+import { getAllTasksFromUser, createTask, updateTask, deleteTask, deleteCompletedTasks } from "../services/taskService"
 import { useAuthStore } from "../stores/authStore"
 
 const authStore = useAuthStore()
@@ -311,6 +318,20 @@ async function handleDeleteTask(taskId) {
   } catch(error){
     console.error(`Error: ${error}`)
     toast.error('Error eliminando la tarea')
+  }
+}
+
+async function handleDeleteCompletedTasks() {
+  try {
+    const token = authStore.token
+    const user = authStore.user
+
+    await deleteCompletedTasks(token)
+    toast.success('Tareas eliminadas')
+    tasks.value = await getAllTasksFromUser(user.id, token)
+  } catch(error) {
+    console.error(`Error: ${error}`)
+    toast.error('Error eliminando las tareas')
   }
 }
 </script>

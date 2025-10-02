@@ -13,8 +13,9 @@
           Completar
         </button>
         <button
-        @click="handleDeleteCompletedTasks"
-        class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="handleDeleteCompletedTasks"
+          class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="!areCompleted"
         >
         Eliminar completadas
         </button>
@@ -175,7 +176,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 import { useToast } from "vue-toastification"
 import * as yup from "yup"
 import { useForm, useField } from "vee-validate"
@@ -215,6 +216,8 @@ onMounted( async () => {
     console.error(`Error: ${error}`)
   }
 })
+
+const areCompleted = computed(() => tasks.value.some(task => task.completed))
 
 function openCreateModal() {
   editMode.value = false

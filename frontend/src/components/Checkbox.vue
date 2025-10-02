@@ -18,23 +18,10 @@
       <span
         class="flex h-5 w-5 items-center justify-center rounded border border-gray-300 bg-white transition
               peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-indigo-500
-              peer-checked:border-indigo-500 peer-checked:bg-indigo-500
+              peer-checked:border-indigo-500 peer-checked:bg-white
               peer-disabled:cursor-not-allowed peer-disabled:border-gray-200 peer-disabled:bg-gray-100"
       >
-        <svg
-          v-if="!isIndeterminate && isChecked"
-          class="h-3.5 w-3.5 text-white"
-          viewBox="0 0 20 20"
-          fill="none"
-        >
-          <path
-            d="M5 10l3 3 7-7"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+        <i v-if="!isIndeterminate && isChecked" class="fa-regular fa-square-check"></i>
         <span
           v-else-if="isIndeterminate"
           class="h-1 w-3 rounded bg-white"

@@ -10,7 +10,6 @@ class UserCreate(UserBase):
 
 class UserOut(UserBase):
   id: int
-  tasks: Optional[List[TaskOut]] = []
   class Config:
     from_attributes=True
 

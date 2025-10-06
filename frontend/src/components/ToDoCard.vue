@@ -20,6 +20,19 @@
         Eliminar completadas
         </button>
         <button
+          type="button"
+          class="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-red-300 text-red-500 rounded-md transition hover:bg-red-50"
+          :class="{ 'border-red-500 bg-red-100 text-red-600 shadow-inner scale-105': isTrashActive }"
+          @dragenter.prevent="handleTrashDragOver"
+          @dragover.prevent="handleTrashDragOver"
+          @dragleave="handleTrashDragLeave"
+          @drop.prevent="handleTrashDrop"
+          aria-label="Soltar tareas aqui para eliminarlas"
+        >
+          <i class="fa-solid fa-trash"></i>
+          Papelera
+        </button>
+        <button
           @click="openCreateModal"
           class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md transition"
         >
@@ -32,8 +45,19 @@
         <div
           v-for="task in tasks"
           :key="task.id"
-          :class="['p-4 rounded-lg shadow flex items-start justify-between gap-4 border transition-colors duration-200', task.completed ? 'bg-slate-50 border-green-200' : 'bg-white border-transparent']"
-          >
+          :class="[
+            'p-4 rounded-lg shadow flex items-start justify-between gap-4 border transition-colors duration-200 cursor-grab select-none',
+            task.completed ? 'bg-slate-50 border-green-200' : 'bg-white border-transparent',
+            draggingTaskId === task.id ? 'opacity-60 cursor-grabbing' : '',
+            dragOverTaskId === task.id && draggingTaskId !== task.id ? 'border-indigo-300 bg-indigo-50' : ''
+          ]"
+          draggable="true"
+          @dragstart="handleDragStart(task.id, $event)"
+          @dragenter="handleDragEnter(task.id)"
+          @dragover.prevent
+          @drop.prevent="handleDropOnTask(task.id)"
+          @dragend="handleDragEnd"
+        >
           <div class="flex items-start gap-3">
             <Checkbox
               v-model="selectedTaskIds"
@@ -126,17 +150,17 @@
 
           <p v-if="errors.type" class="text-red-500 text-xs mt-1"><strong>*{{ errors.type }}*</strong></p>
 
-          <div class="flex justify-end gap-2">
+          <div class="flex justify-end gap-3">
             <button
               type="button"
               @click="closeModal"
-              class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md"
+              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md"
+              class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md text-sm transition-colors"
             >
               Guardar
             </button>
@@ -144,34 +168,36 @@
         </form>
       </div>
     </div>
-      <!-- Modal eliminar -->
-        <div
-        v-if="showDeleteModal"
-        class="fixed inset-0 bg-black/50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-lg p-6 w-[400px]">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">
-            ¿Estás seguro de eliminar esta tarea?
-          </h2>
-          <p class="text-gray-600 text-sm mb-6">
-            Esta acción no se puede deshacer.
-          </p>
-          <div class="flex justify-end gap-3">
-            <button
-            @click="closeDeleteModal"
-              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-            type="submit"
-              @click="handleDeleteTask(selectedTaskID)"
-              class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm transition-colors"
-            >
-              Eliminar
-            </button>
-          </div>
+
+    <!-- Modal eliminar -->
+    <div
+      v-if="showDeleteModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center"
+    >
+      <div class="bg-white rounded-lg shadow-lg p-6 w-[400px]">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">
+          ¿Estás seguro de eliminar esta tarea?
+        </h2>
+        <p class="text-gray-600 text-sm mb-6">
+          Esta acción no se puede deshacer.
+        </p>
+        <div class="flex justify-end gap-3">
+          <button
+          @click="closeDeleteModal"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+          type="submit"
+            @click="handleDeleteTask(selectedTaskID)"
+            class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm transition-colors"
+          >
+            Eliminar
+          </button>
         </div>
       </div>
+    </div>
   </div>
 </template>
 
@@ -194,27 +220,98 @@ const toast = useToast()
 const showModal = ref(false)
 const showDeleteModal = ref(false)
 const editMode = ref(false)
+const draggingTaskId = ref(null)
+const dragOverTaskId = ref(null)
+const isTrashActive = ref(false)
+const taskOrder = ref([])
+
 const schema = yup.object({
   title: yup.string().max(30, "Máximo 30 caracteres."),
-  description: yup.string().max(50, "Máxmimo 50 caracteres."),
+  description: yup.string().max(50, "Máximo 50 caracteres."),
 })
+
 const { handleSubmit, errors, resetForm } = useForm({
   validationSchema: schema,
   validateOnInput: true
 })
-const { value: title } = useField('title')
-const { value: description } = useField('description')
-const { value: task_type } = useField('task_type')
-onMounted( async () => {
-  try {
-    const token = authStore.token
-    const user = authStore.user
 
-    tasks.value = await getAllTasksFromUser(user.id, token)
-  } catch(error) {
-    toast.error('Error al traer las tareas')
-    console.error(`Error: ${error}`)
+const { value: title } = useField("title")
+const { value: description } = useField("description")
+const { value: task_type } = useField("task_type")
+
+function hasLocalStorageSupport() {
+  return typeof window !== "undefined" && typeof window.localStorage !== "undefined"
+}
+
+function getOrderStorageKey() {
+  const userId = authStore.user?.id ?? "default"
+  return `task-order-${userId}`
+}
+
+function loadTaskOrder() {
+  if (!hasLocalStorageSupport()) {
+    return
   }
+  try {
+    const raw = window.localStorage.getItem(getOrderStorageKey())
+    if (!raw) {
+      return
+    }
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) {
+      taskOrder.value = parsed
+    }
+  } catch (error) {
+    console.error("Error cargando el orden de las tareas", error)
+  }
+}
+
+function persistTaskOrder() {
+  if (!hasLocalStorageSupport()) {
+    return
+  }
+  try {
+    window.localStorage.setItem(getOrderStorageKey(), JSON.stringify(taskOrder.value))
+  } catch (error) {
+    console.error("Error guardando el orden de las tareas", error)
+  }
+}
+
+function setTasksWithOrder(fetchedTasks = []) {
+  const fetchedIds = fetchedTasks.map(task => task.id)
+  const orderedIds = taskOrder.value.filter(id => fetchedIds.includes(id))
+  const missingIds = fetchedIds.filter(id => !orderedIds.includes(id))
+  taskOrder.value = [...orderedIds, ...missingIds]
+  tasks.value = taskOrder.value
+    .map(id => fetchedTasks.find(task => task.id === id))
+    .filter(Boolean)
+  selectedTaskIds.value = selectedTaskIds.value.filter(id => taskOrder.value.includes(id))
+  persistTaskOrder()
+}
+
+async function refreshTasks({ showErrorToast = false } = {}) {
+  const token = authStore.token
+  const user = authStore.user
+
+  if (!user || typeof user.id === "undefined") {
+    return
+  }
+
+  const fetchedTasks = await getAllTasksFromUser(user.id, token)
+
+  if (!Array.isArray(fetchedTasks)) {
+    if (showErrorToast) {
+      toast.error("Error al traer las tareas")
+    }
+    return
+  }
+
+  setTasksWithOrder(fetchedTasks)
+}
+
+onMounted(async () => {
+  loadTaskOrder()
+  await refreshTasks({ showErrorToast: true })
 })
 
 const areCompleted = computed(() => tasks.value.some(task => task.completed))
@@ -264,15 +361,14 @@ async function completeSelectedTasks(){
 
   try {
     const token = authStore.token
-    const user = authStore.user
 
     await Promise.all(pendingIds.map(async id => {
       await updateTask(id, { completed: true }, token)
     }))
 
     toast.success('Tareas marcadas como completadas')
-    tasks.value = await getAllTasksFromUser(user.id, token)
     selectedTaskIds.value = []
+    await refreshTasks({ showErrorToast: true })
   } catch(error) {
     console.error(`Error: ${error}`)
     toast.error('Error al completar tareas')
@@ -282,12 +378,11 @@ async function completeSelectedTasks(){
 const handleCreateTask = handleSubmit(async (values) => {
   try {
     const token = authStore.token
-    const user = authStore.user
 
     await createTask(values, token)
     toast.success('Tarea creada con exito')
-    tasks.value = await getAllTasksFromUser(user.id, token)
     closeModal()
+    await refreshTasks({ showErrorToast: true })
   } catch(error) {
     console.error(`Error: ${error}`)
     toast.error('Error al crear tarea')
@@ -297,12 +392,11 @@ const handleCreateTask = handleSubmit(async (values) => {
 const handleUpdateTask = handleSubmit(async (values) => {
   try {
     const token = authStore.token
-    const user = authStore.user
     
     await updateTask(selectedTaskID.value, values, token)
     toast.success('Tarea editada con exito')
-    tasks.value = await getAllTasksFromUser(user.id, token)
     closeModal()
+    await refreshTasks({ showErrorToast: true })
   } catch(error) {
     console.error(`Error: ${error}`)
     toast.error('Error al editar tarea')
@@ -312,12 +406,11 @@ const handleUpdateTask = handleSubmit(async (values) => {
 async function handleDeleteTask(taskId) {
   try {
     const token = authStore.token
-    const user = authStore.user
 
     await deleteTask(taskId, token)
     toast.success('Tarea eliminada')
-    tasks.value = await getAllTasksFromUser(user.id, token)
     closeDeleteModal()
+    await refreshTasks({ showErrorToast: true })
   } catch(error){
     console.error(`Error: ${error}`)
     toast.error('Error eliminando la tarea')
@@ -327,14 +420,99 @@ async function handleDeleteTask(taskId) {
 async function handleDeleteCompletedTasks() {
   try {
     const token = authStore.token
-    const user = authStore.user
 
     await deleteCompletedTasks(token)
     toast.success('Tareas eliminadas')
-    tasks.value = await getAllTasksFromUser(user.id, token)
+    await refreshTasks({ showErrorToast: true })
   } catch(error) {
     console.error(`Error: ${error}`)
     toast.error('Error eliminando las tareas')
+  }
+}
+
+function handleDragStart(taskId, event) {
+  draggingTaskId.value = taskId
+  dragOverTaskId.value = null
+  if (event?.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', String(taskId))
+  }
+}
+
+function handleDragEnter(taskId) {
+  if (draggingTaskId.value === null || taskId === draggingTaskId.value) {
+    return
+  }
+  dragOverTaskId.value = taskId
+}
+
+function handleDropOnTask(targetId) {
+  if (draggingTaskId.value === null || targetId === draggingTaskId.value) {
+    handleDragEnd()
+    return
+  }
+
+  const currentTasks = [...tasks.value]
+  const fromIndex = currentTasks.findIndex(task => task.id === draggingTaskId.value)
+  const toIndex = currentTasks.findIndex(task => task.id === targetId)
+
+  if (fromIndex === -1 || toIndex === -1) {
+    handleDragEnd()
+    return
+  }
+
+  const [movedTask] = currentTasks.splice(fromIndex, 1)
+  currentTasks.splice(toIndex, 0, movedTask)
+
+  tasks.value = currentTasks
+  taskOrder.value = currentTasks.map(task => task.id)
+  persistTaskOrder()
+  handleDragEnd()
+}
+
+function handleDragEnd() {
+  draggingTaskId.value = null
+  dragOverTaskId.value = null
+  isTrashActive.value = false
+}
+
+function handleTrashDragOver(event) {
+  if (draggingTaskId.value === null) {
+    return
+  }
+  if (event?.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move'
+  }
+  isTrashActive.value = true
+}
+
+function handleTrashDragLeave() {
+  isTrashActive.value = false
+}
+
+async function handleTrashDrop() {
+  if (draggingTaskId.value === null) {
+    handleDragEnd()
+    return
+  }
+
+  const taskId = draggingTaskId.value
+  const token = authStore.token
+
+  taskOrder.value = taskOrder.value.filter(id => id !== taskId)
+  tasks.value = tasks.value.filter(task => task.id !== taskId)
+  selectedTaskIds.value = selectedTaskIds.value.filter(id => id !== taskId)
+  persistTaskOrder()
+  handleDragEnd()
+
+  try {
+    await deleteTask(taskId, token)
+    toast.success('Tarea eliminada')
+    await refreshTasks({ showErrorToast: true })
+  } catch(error) {
+    console.error(`Error: ${error}`)
+    toast.error('Error eliminando la tarea')
+    await refreshTasks({ showErrorToast: true })
   }
 }
 </script>

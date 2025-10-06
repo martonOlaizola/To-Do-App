@@ -6,6 +6,7 @@ Full-stack task manager built with a FastAPI backend and a Vue 3 (Vite) frontend
 
 - User registration, login, and token-based session persistence (`backend/app/endpoints/user_ep.py`).
 - Task creation, editing, completion, and deletion with ownership checks (`backend/app/endpoints/task_ep.py`).
+- Drag-and-drop task ordering with per-user persistence and trash-drop deletion (`frontend/src/components/ToDoCard.vue`).
 - Bulk mark-as-complete and delete-completed utilities (`frontend/src/components/ToDoCard.vue`).
 - Persisted auth state with Pinia + localStorage (`frontend/src/stores/authStore.js`).
 - Toast notifications and simple validation flows on the client.
@@ -108,6 +109,12 @@ frontend/
 - Start the Vite dev server (`npm run dev`) in another.
 - Navigate to `http://localhost:5173`, register, and log in to begin managing tasks.
 
+### Task Drag-and-Drop
+
+- Reorder tasks by grabbing anywhere on the card and dropping it in the desired position.
+- Drop a task over the **Papelera** button to delete it instantly (uses the existing delete endpoint).
+- The order is stored in `localStorage` per user, so refreshes keep your custom layout.
+
 ## API Overview
 
 | Method | Endpoint                     | Description                        | Auth |
@@ -144,4 +151,3 @@ frontend/
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-

@@ -3,6 +3,8 @@ from pydantic_settings import BaseSettings
 from typing import List
 
 class Settings(BaseSettings):
+  """Application configuration sourced from environment variables."""
+
   DATABASE_URL: str
   BACKEND_CORS_ORIGINS: List[str] = []
   SECRET_KEY: str
@@ -10,11 +12,20 @@ class Settings(BaseSettings):
 
   @field_validator("BACKEND_CORS_ORIGINS", mode="before")
   def assemble_cors(cls, v):
+    """Normalize the CORS origins string into a list of hosts.
+
+    Args:
+      v (str | List[str]): Comma separated hosts or a list of origins.
+
+    Returns:
+      List[str]: Parsed origins that FastAPI can consume.
+    """
     if isinstance(v, str):
         return [i.strip() for i in v.split(",") if i.strip()]
     return v
   
   class Config:
+    """Enable loading values from the dotenv file."""
     env_file =".env"
 
 settings = Settings()

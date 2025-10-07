@@ -239,15 +239,27 @@ const { value: title } = useField("title")
 const { value: description } = useField("description")
 const { value: task_type } = useField("task_type")
 
+/**
+ * Determine if the environment exposes window.localStorage.
+ * @returns {boolean} True when local storage APIs are available.
+ */
 function hasLocalStorageSupport() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined"
 }
 
+/**
+ * Build the storage key used to persist the user's task order.
+ * @returns {string} Composite key combining the user id and the prefix.
+ */
 function getOrderStorageKey() {
   const userId = authStore.user?.id ?? "default"
   return `task-order-${userId}`
 }
 
+/**
+ * Restore the task ordering persisted in local storage.
+ * @returns {void}
+ */
 function loadTaskOrder() {
   if (!hasLocalStorageSupport()) {
     return
@@ -266,6 +278,10 @@ function loadTaskOrder() {
   }
 }
 
+/**
+ * Persist the in-memory ordering of tasks to local storage.
+ * @returns {void}
+ */
 function persistTaskOrder() {
   if (!hasLocalStorageSupport()) {
     return
@@ -277,6 +293,11 @@ function persistTaskOrder() {
   }
 }
 
+/**
+ * Merge fetched tasks with the stored order preference.
+ * @param {Array<{ id: number }>} fetchedTasks - Tasks retrieved from the backend.
+ * @returns {void}
+ */
 function setTasksWithOrder(fetchedTasks = []) {
   const fetchedIds = fetchedTasks.map(task => task.id)
   const orderedIds = taskOrder.value.filter(id => fetchedIds.includes(id))
@@ -289,6 +310,11 @@ function setTasksWithOrder(fetchedTasks = []) {
   persistTaskOrder()
 }
 
+/**
+ * Fetch tasks for the current user and update the local state.
+ * @param {{ showErrorToast?: boolean }} [options] - Control error feedback behaviour.
+ * @returns {Promise<void>} Resolves when the tasks refresh completes.
+ */
 async function refreshTasks({ showErrorToast = false } = {}) {
   const token = authStore.token
   const user = authStore.user
@@ -314,14 +340,27 @@ onMounted(async () => {
   await refreshTasks({ showErrorToast: true })
 })
 
+/**
+ * Indicate whether there is at least one completed task.
+ * @type {import('vue').ComputedRef<boolean>}
+ */
 const areCompleted = computed(() => tasks.value.some(task => task.completed))
 
+/**
+ * Prepare the form for creating a new task and display the modal.
+ * @returns {void}
+ */
 function openCreateModal() {
   editMode.value = false
   resetForm()
   showModal.value = true
 }
 
+/**
+ * Load an existing task into the form for editing.
+ * @param {{ id: number } & Record<string, unknown>} task - Task selected by the user.
+ * @returns {void}
+ */
 function openEditModal(task) {
   selectedTaskID.value = task.id
   selectedTask.value = task
@@ -330,19 +369,36 @@ function openEditModal(task) {
   showModal.value = true
 }
 
+/**
+ * Hide the task modal without persisting changes.
+ * @returns {void}
+ */
 function closeModal(){
   showModal.value = false
 }
 
+/**
+ * Ask the user to confirm the deletion of the selected task.
+ * @param {number} taskID - Identifier of the task to remove.
+ * @returns {void}
+ */
 function openDeleteModal(taskID) {
   selectedTaskID.value = taskID
   showDeleteModal.value = true
 }
 
+/**
+ * Dismiss the delete confirmation modal.
+ * @returns {void}
+ */
 function closeDeleteModal(){
   showDeleteModal.value = false
 }
 
+/**
+ * Mark the selected tasks as completed in bulk.
+ * @returns {Promise<void>} Resolves after the backend update finishes.
+ */
 async function completeSelectedTasks(){
   if (!selectedTaskIds.value.length) {
     return
@@ -375,6 +431,11 @@ async function completeSelectedTasks(){
   }
 }
 
+/**
+ * Submit a new task once the creation form lints successfully.
+ * @param {{ title?: string, description?: string, task_type: string, completed?: boolean }} values - Validated form payload.
+ * @returns {Promise<void>} Resolves after the task list is refreshed.
+ */
 const handleCreateTask = handleSubmit(async (values) => {
   try {
     const token = authStore.token
@@ -389,6 +450,11 @@ const handleCreateTask = handleSubmit(async (values) => {
   }
 })
 
+/**
+ * Persist edits made to the currently selected task.
+ * @param {{ title?: string, description?: string, task_type?: string, completed?: boolean }} values - Validated form payload.
+ * @returns {Promise<void>} Resolves after the task list reflects the changes.
+ */
 const handleUpdateTask = handleSubmit(async (values) => {
   try {
     const token = authStore.token
@@ -403,6 +469,11 @@ const handleUpdateTask = handleSubmit(async (values) => {
   }
 })
 
+/**
+ * Permanently delete a single task after confirmation.
+ * @param {number} taskId - Identifier of the task to remove.
+ * @returns {Promise<void>} Resolves once the deletion request finishes.
+ */
 async function handleDeleteTask(taskId) {
   try {
     const token = authStore.token
@@ -417,6 +488,10 @@ async function handleDeleteTask(taskId) {
   }
 }
 
+/**
+ * Remove every task marked as completed for the current user.
+ * @returns {Promise<void>} Resolves after the tasks are deleted and refreshed.
+ */
 async function handleDeleteCompletedTasks() {
   try {
     const token = authStore.token
@@ -430,6 +505,12 @@ async function handleDeleteCompletedTasks() {
   }
 }
 
+/**
+ * Begin dragging a task card and prepare drag metadata.
+ * @param {number} taskId - Identifier of the dragged task.
+ * @param {DragEvent} event - Native drag event fired by the browser.
+ * @returns {void}
+ */
 function handleDragStart(taskId, event) {
   draggingTaskId.value = taskId
   dragOverTaskId.value = null
@@ -439,6 +520,11 @@ function handleDragStart(taskId, event) {
   }
 }
 
+/**
+ * Highlight the drop target when another task is dragged over it.
+ * @param {number} taskId - Identifier of the task currently under the cursor.
+ * @returns {void}
+ */
 function handleDragEnter(taskId) {
   if (draggingTaskId.value === null || taskId === draggingTaskId.value) {
     return
@@ -446,6 +532,11 @@ function handleDragEnter(taskId) {
   dragOverTaskId.value = taskId
 }
 
+/**
+ * Reorder the task list when a card is dropped on another card.
+ * @param {number} targetId - Identifier of the task that received the drop.
+ * @returns {void}
+ */
 function handleDropOnTask(targetId) {
   if (draggingTaskId.value === null || targetId === draggingTaskId.value) {
     handleDragEnd()
@@ -470,12 +561,21 @@ function handleDropOnTask(targetId) {
   handleDragEnd()
 }
 
+/**
+ * Clear drag state once the drag-and-drop interaction finishes.
+ * @returns {void}
+ */
 function handleDragEnd() {
   draggingTaskId.value = null
   dragOverTaskId.value = null
   isTrashActive.value = false
 }
 
+/**
+ * Activate the trash drop zone while a task is dragged over it.
+ * @param {DragEvent} event - Native drag event containing data transfer info.
+ * @returns {void}
+ */
 function handleTrashDragOver(event) {
   if (draggingTaskId.value === null) {
     return
@@ -486,10 +586,18 @@ function handleTrashDragOver(event) {
   isTrashActive.value = true
 }
 
+/**
+ * Reset the trash drop zone when the pointer leaves the area.
+ * @returns {void}
+ */
 function handleTrashDragLeave() {
   isTrashActive.value = false
 }
 
+/**
+ * Permanently delete the currently dragged task using the trash zone.
+ * @returns {Promise<void>} Resolves after the deletion and refresh complete.
+ */
 async function handleTrashDrop() {
   if (draggingTaskId.value === null) {
     handleDragEnd()

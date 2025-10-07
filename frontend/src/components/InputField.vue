@@ -63,16 +63,28 @@ const emit = defineEmits(['update:modelValue'])
 const inputRef = ref(null)
 const touched = ref(false)
 
+/**
+ * Resolve the native browser validation message when available.
+ * @type {import('vue').ComputedRef<string>}
+ */
 const nativeError = computed(() => {
   if (!inputRef.value || !touched.value) return ''
   return inputRef.value.validationMessage || ''
 })
 
+/**
+ * Pick the most relevant error message to display to the user.
+ * @type {import('vue').ComputedRef<string>}
+ */
 const errorToShow = computed(() => {
   return props.error || nativeError.value
 })
 
 defineExpose({
+  /**
+   * Scroll the input into view and focus it when an error is present.
+   * @returns {void}
+   */
   scrollToError() {
     if (errorToShow.value && inputRef.value) {
       inputRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })

@@ -7,6 +7,11 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
 def get_db():
+  """Provide a SQLAlchemy session for the lifespan of a request.
+
+  Yields:
+    Session: Database session bound to the configured engine.
+  """
   db = SessionLocal()
   try:
     yield db

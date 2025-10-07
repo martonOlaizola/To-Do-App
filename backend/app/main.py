@@ -27,8 +27,18 @@ app.include_router(user_ep.router)
 
 @app.get("/")
 def read_root():
+  """Return a greeting payload for health checks.
+
+  Returns:
+    dict[str, str]: Static message confirming the API is reachable.
+  """
   return {"message": "Hello World"}
 
 @app.get("/health", tags=["Health"])
 async def health():
+  """Expose a liveness endpoint for monitoring tools.
+
+  Returns:
+    dict[str, str]: Status payload indicating the service is operational.
+  """
   return {"status": "ok"}

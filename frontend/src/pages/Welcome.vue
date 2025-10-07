@@ -16,6 +16,10 @@
 import {useRouter} from 'vue-router'
 const router = useRouter()
 
+/**
+ * Redirect the visitor to the login view.
+ * @returns {void}
+ */
 function goToLogin() {
   router.push('/login')
 }

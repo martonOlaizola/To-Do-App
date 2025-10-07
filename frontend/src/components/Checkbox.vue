@@ -77,10 +77,19 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue", "change"])
 
 const inputRef = ref(null)
+/**
+ * Computed identifier used to associate the label and the input element.
+ * @type {import('vue').ComputedRef<string>}
+ */
 const inputId = computed(
   () => props.id ?? `checkbox-${Math.random().toString(36).slice(2, 9)}`
 )
 
+/**
+ * Normalize any truthy value representation into a boolean.
+ * @param {unknown} value - Value provided through v-model or manual binding.
+ * @returns {boolean} True when the value should be considered checked.
+ */
 const normalizeBoolean = value => {
   if (typeof value === "string") {
     const normalized = value.trim().toLowerCase()
@@ -94,6 +103,10 @@ const normalizeBoolean = value => {
   return Boolean(value)
 }
 
+/**
+ * Determine whether the checkbox should be rendered as checked.
+ * @type {import('vue').ComputedRef<boolean>}
+ */
 const isChecked = computed(() => {
   if (Array.isArray(props.modelValue)) {
     return props.modelValue.includes(props.value)
@@ -101,8 +114,16 @@ const isChecked = computed(() => {
   return normalizeBoolean(props.modelValue)
 })
 
+/**
+ * Flag that reflects the visual indeterminate state.
+ * @type {import('vue').ComputedRef<boolean>}
+ */
 const isIndeterminate = computed(() => props.indeterminate)
 
+/**
+ * Sync the DOM indeterminate property with the reactive prop.
+ * @returns {void}
+ */
 const syncIndeterminate = () => {
   if (inputRef.value) {
     inputRef.value.indeterminate = props.indeterminate
@@ -112,6 +133,11 @@ const syncIndeterminate = () => {
 onMounted(syncIndeterminate)
 watch(() => props.indeterminate, syncIndeterminate)
 
+/**
+ * Emit the checkbox state whenever the native input changes.
+ * @param {Event & { target: HTMLInputElement }} event - Native change event dispatched by the input.
+ * @returns {void}
+ */
 const handleChange = event => {
   const { checked } = event.target
   let nextValue

@@ -1,22 +1,54 @@
 from pydantic import BaseModel
 from typing import Optional
 
+
 class TaskBase(BaseModel):
-  title:str
-  description: Optional[str]=None
+  """Shared attributes for task payloads exchanged with the API.
+
+  Attributes:
+    title (str): Short label that identifies the task.
+    description (Optional[str]): Optional text with additional details.
+    task_type (str): Category such as work, personal, or study.
+    completed (bool): Indicator showing whether the task is complete.
+  """
+
+  title: str
+  description: Optional[str] = None
   task_type: str
-  completed: bool=False
+  completed: bool = False
+
 
 class TaskCreate(TaskBase):
+  """Payload used when creating a new task."""
   pass
 
+
 class TaskUpdate(BaseModel):
+  """Partial payload that conveys task updates.
+
+  Attributes:
+    title (Optional[str]): Updated title if provided.
+    description (Optional[str]): Updated description if provided.
+    task_type (Optional[str]): Updated category if provided.
+    completed (Optional[bool]): Updated completion flag if provided.
+  """
+
   title: Optional[str] = None
   description: Optional[str] = None
   task_type: Optional[str] = None
   completed: Optional[bool] = None
 
+
 class TaskOut(TaskBase):
+  """Representation of a task returned to the client.
+
+  Attributes:
+    id (int): Identifier assigned by the database.
+  """
+
   id: int
+
   class Config:
-    from_attributes=True
+    """Allow conversion from SQLAlchemy objects."""
+
+    from_attributes = True

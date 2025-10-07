@@ -88,10 +88,19 @@ const { handleSubmit } = useForm({
 const { value: email, errorMessage: emailError } = useField('email')
 const { value: password, errorMessage: passwordError } = useField('password')
 
+/**
+ * Toggle the plain text visibility of the password input.
+ * @returns {void}
+ */
 function togglePassword() {
   showPassword.value = !showPassword.value
 }
 
+/**
+ * Submit the login form once all VeeValidate rules pass.
+ * @param {{ email: string, password: string }} values - Validated form values.
+ * @returns {Promise<void>} Resolves after navigation or when an error surfaces.
+ */
 const onSubmit = handleSubmit(async (values) => {
   try{
     const userData = {

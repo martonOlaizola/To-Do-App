@@ -18,6 +18,11 @@ const router = createRouter({
   routes
 })
 
+/**
+ * Block navigation to protected routes when the user is not authenticated.
+ * @param {import('vue-router').RouteLocationNormalized} to - Target location requested by the router.
+ * @returns {true | string} True when navigation is allowed, otherwise a redirect path.
+ */
 router.beforeEach((to) => {
   const auth = useAuthStore()
   if (to.meta.requiresAuth && !auth.isAuthenticated) {

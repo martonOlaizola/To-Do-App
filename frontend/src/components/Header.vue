@@ -41,16 +41,28 @@ const router = useRouter()
 const open = ref(false);
 const authStore = useAuthStore()
 
+/**
+ * Navigate to the login route and close the dropdown menu.
+ * @returns {void}
+ */
 function handleLogin(){
   router.push('/login')
   open.value = false
 }
 
+/**
+ * Navigate to the register route and close the dropdown menu.
+ * @returns {void}
+ */
 function handleRegister(){
   router.push('/register')
   open.value = false
 }
 
+/**
+ * Clear the authentication state and redirect to the welcome page.
+ * @returns {void}
+ */
 function handleLogout(){
   authStore.LogOut()
   router.push('/')

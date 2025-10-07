@@ -115,12 +115,25 @@ const { value: rePassword, errorMessage: rePasswordError } = useField('rePasswor
 
 
 
+/**
+ * Toggle the visibility of the primary password field.
+ * @returns {void}
+ */
 function togglePassword() {
   showPassword.value = !showPassword.value
 }
+/**
+ * Toggle the visibility of the repeated password field.
+ * @returns {void}
+ */
 function toggleRePassword() {
   showRePassword.value = !showRePassword.value
 }
+/**
+ * Handle the registration flow after successful validation.
+ * @param {{ email: string, password: string, rePassword: string }} values - Validated registration data.
+ * @returns {Promise<void>} Resolves once the user is registered and redirected.
+ */
 const onSubmit = handleSubmit(async (values) => {
   try {
     const payload = {

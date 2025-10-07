@@ -358,7 +358,7 @@ function openCreateModal() {
 
 /**
  * Load an existing task into the form for editing.
- * @param {{ id: number } & Record<string, unknown>} task - Task selected by the user.
+ * @param { id: number } & Record<string, unknown>} task - Task selected by the user.
  * @returns {void}
  */
 function openEditModal(task) {
@@ -433,7 +433,7 @@ async function completeSelectedTasks(){
 
 /**
  * Submit a new task once the creation form lints successfully.
- * @param {{ title?: string, description?: string, task_type: string, completed?: boolean }} values - Validated form payload.
+ * @param { title?: string, description?: string, task_type: string, completed?: boolean } values - Validated form payload.
  * @returns {Promise<void>} Resolves after the task list is refreshed.
  */
 const handleCreateTask = handleSubmit(async (values) => {
@@ -452,7 +452,7 @@ const handleCreateTask = handleSubmit(async (values) => {
 
 /**
  * Persist edits made to the currently selected task.
- * @param {{ title?: string, description?: string, task_type?: string, completed?: boolean }} values - Validated form payload.
+ * @param { title?: string, description?: string, task_type?: string, completed?: boolean } values - Validated form payload.
  * @returns {Promise<void>} Resolves after the task list reflects the changes.
  */
 const handleUpdateTask = handleSubmit(async (values) => {

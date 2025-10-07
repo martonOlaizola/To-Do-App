@@ -69,16 +69,16 @@
               <p :class="['text-sm', task.completed ? 'text-gray-400' : 'text-gray-600']">{{ task.description }}</p>
               <span
                 :class="[
-                  'inline-block mt-1 px-2 py-1 text-xs rounded-full transition-colors duration-200',
+                  'inline-block mt-2 px-2 py-1 text-xs rounded-full transition-colors duration-200',
                   task.completed ? 'opacity-70 ring-1 ring-green-200' : '',
                   {
-                    'bg-blue-100 text-blue-600': task.type === 'trabajo',
-                    'bg-green-100 text-green-600': task.type === 'personal',
-                    'bg-yellow-100 text-yellow-600': task.type === 'estudio'
+                    'bg-blue-100 text-blue-600': task.task_type === 'trabajo',
+                    'bg-green-100 text-green-600': task.task_type === 'personal',
+                    'bg-yellow-100 text-yellow-600': task.task_type === 'estudio'
                   }
                 ]"
               >
-                {{ task.type }}
+                {{ task.task_type }}
               </span>
             </div>
           </div>

@@ -81,7 +81,7 @@ def update_task(task: TaskUpdate, task_id: int, db: Session = Depends(get_db)):
   task_db.title = task.title if task.title else task_db.title
   task_db.description = task.description if task.description else task_db.description
   task_db.task_type = task.task_type if task.task_type else task_db.task_type
-  task_db.completed = task.completed if task.completed else task_db.completed
+  task_db.completed = task.completed if task.completed is not None else task_db.completed
   db.commit()
   db.refresh(task_db)
   return task_db

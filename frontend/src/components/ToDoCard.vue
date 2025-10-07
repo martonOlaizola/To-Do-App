@@ -62,6 +62,7 @@
             <Checkbox
               v-model="selectedTaskIds"
               :value="task.id"
+              :disabled="task.completed"
             />
             <div>
               <h2 :class="['text-lg font-semibold', task.completed ? 'text-gray-500 line-through' : 'text-gray-800']">{{ task.title }}</h2>

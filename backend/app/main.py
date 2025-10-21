@@ -1,11 +1,9 @@
 import logging
-from fastapi import FastAPI, status, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.endpoints import task_ep, user_ep
-
-logger = logging.getLogger(__name__)
 
 app = FastAPI(
   title="To-Do API",

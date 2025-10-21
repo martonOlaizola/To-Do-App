@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-    <div class="max-w-md w-full bg-gray-200 rounded-xl shadow-lg p-8 space-y-6">
+  <div class="overflow-hidden flex items-center justify-center bg-gray-50 py-24 ">
+    <div class="max-w-md w-full bg-gray-300 rounded-xl shadow-2xl p-8 space-y-6">
       <h1 class="text-2xl font-semibold text-center text-gray-800">Iniciar sesión</h1>
       <p class="text-gray-500 text-xs mt-1">Los campos con * son obligatorios</p>
       <form class="space-y-4" @submit.prevent="onSubmit">

@@ -1,6 +1,6 @@
 <template>
-  <footer class="w-full bg-gray-900 border-t border-gray-300 py-6">
-    <div class="max-w-7xl mx-auto px-6 grid gap-6 text-sm text-gray-700
+  <footer class="w-full bg-gray-900 border-t py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-4 text-sm text-gray-700
                 text-center sm:text-left
                 sm:grid-cols-2 md:grid-cols-3">
       
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Línea inferior -->
-    <div class="mt-6 text-center text-xs text-gray-500">
+    <div class="mt-2 text-center text-xs text-gray-500">
       © 2025 To-Do APP. Todos los derechos reservados.
     </div>
   </footer>

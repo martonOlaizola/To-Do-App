@@ -1,7 +1,4 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional, List
-from .task_schemas import TaskOut
-
+from pydantic import BaseModel, EmailStr, field_validator
 
 class UserBase(BaseModel):
   """Common fields shared across user payloads.
@@ -22,6 +19,10 @@ class UserCreate(UserBase):
 
   password: str
 
+  @field_validator("password")
+  def validate_password(value: str) -> str:
+    if len(value) < 6:
+      raise ValueError("Password too short, 6 characters minimum")
 
 class UserOut(UserBase):
   """Representation of a user returned by the API.

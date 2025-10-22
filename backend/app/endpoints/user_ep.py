@@ -5,7 +5,7 @@ from typing import List, Annotated
 from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas.user_schemas import UserCreate, UserOut, Token
 from app.core.database import get_db
-from app.crud import user_crud
+from app.services import user_service
 from app.utils import auth as user_auth
 
 router = APIRouter(
@@ -32,13 +32,13 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
   Returns:
     UserOut: Serialized representation of the stored user.
   """
-  user_db = user_crud.get_user_by_email(user.email, db)
+  user_db = user_service.get_user_by_email(user.email, db)
   if user_db:
     raise HTTPException(
       status_code=400,
       detail="El usuario ya existe.",
     )
-  return user_crud.create_user(user, db)
+  return user_service.create_user(user, db)
 
 
 @router.post(
@@ -107,7 +107,7 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
   Returns:
     UserOut: Serialized representation of the stored user.
   """
-  user_db = user_crud.get_user_by_id(user_id, db)
+  user_db = user_service.get_user_by_id(user_id, db)
   if user_db is None:
     raise HTTPException(
       status_code=404,
@@ -134,7 +134,7 @@ def get_user_by_email(user_email: str, db: Session = Depends(get_db)):
   Returns:
     UserOut: Serialized representation of the stored user.
   """
-  user_db = user_crud.get_user_by_email(user_email, db)
+  user_db = user_service.get_user_by_email(user_email, db)
   if user_db is None:
     raise HTTPException(
       status_code=404,

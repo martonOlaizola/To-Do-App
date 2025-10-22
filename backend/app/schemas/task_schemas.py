@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 
 
@@ -17,11 +17,27 @@ class TaskBase(BaseModel):
   task_type: str
   completed: bool = False
 
+  @field_validator("task_type")
+  def validate_task_type(value: str) -> str:
+    valid_types = ['trabajo', 'personal', 'estudio']
+    if value.lower() not in valid_types:
+      raise ValueError(f'{value} is not a valid type')
+    return value
+  
+  @field_validator("title")
+  def validate_title(value: str) -> str:
+    if len(value) > 30:
+      raise ValueError('Title too long, 30 characters max')
+    return value
+
+  @field_validator("description")
+  def validate_description(value: str) -> str:
+    if len(value) > 50:
+      raise ValueError('Description too long, 50 characters max')
 
 class TaskCreate(TaskBase):
   """Payload used when creating a new task."""
   pass
-
 
 class TaskUpdate(BaseModel):
   """Partial payload that conveys task updates.
@@ -38,6 +54,22 @@ class TaskUpdate(BaseModel):
   task_type: Optional[str] = None
   completed: Optional[bool] = None
 
+  @field_validator("task_type")
+  def validate_task_type(value: str) -> str:
+    valid_types = ['trabajo', 'personal', 'estudio']
+    if value not in valid_types:
+      raise ValueError(f'{value} is not a valid type')
+    return value
+  
+  @field_validator("title")
+  def validate_title(value: str) -> str:
+    if len(value) > 30:
+      raise ValueError('Title too long')
+    return value
+  @field_validator("description")
+  def validate_description(value: str) -> str:
+    if len(value) > 50:
+      raise ValueError('Description too long')
 
 class TaskOut(TaskBase):
   """Representation of a task returned to the client.

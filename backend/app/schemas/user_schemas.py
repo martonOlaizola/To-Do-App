@@ -23,6 +23,7 @@ class UserCreate(UserBase):
   def validate_password(value: str) -> str:
     if len(value) < 6:
       raise ValueError("Password too short, 6 characters minimum")
+    return value
 
 class UserOut(UserBase):
   """Representation of a user returned by the API.

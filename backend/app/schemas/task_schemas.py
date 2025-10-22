@@ -34,6 +34,7 @@ class TaskBase(BaseModel):
   def validate_description(value: str) -> str:
     if len(value) > 50:
       raise ValueError('Description too long, 50 characters max')
+    return value
 
 class TaskCreate(TaskBase):
   """Payload used when creating a new task."""
